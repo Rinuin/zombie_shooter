@@ -7,6 +7,7 @@ from direct.task.TaskManagerGlobal import taskMgr
 from panda3d.core import WindowProperties, Vec3
 from direct.task import Task
 
+from Scripts.config import SCREEN_WIDTH, SCREEN_HEIGHT
 from Scripts.player import Player
 
 
@@ -15,7 +16,7 @@ class Game(ShowBase):
         ShowBase.__init__(self)
 
         properties = WindowProperties()
-        properties.setSize(1000, 750)
+        properties.setSize(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.win.requestProperties(properties)
         self.disableMouse()
 
@@ -28,6 +29,8 @@ class Game(ShowBase):
 
         self.control_service()
         self.updateTask = taskMgr.add(self.update, "update")
+
+        self.mouse_check_value = 0.8
 
     def control_service(self):
         self.keyMap = {
@@ -65,9 +68,15 @@ class Game(ShowBase):
             self.player.move(Vec3(move_step * dt, 0, 0))
         if self.keyMap["right"]:
             self.player.move(Vec3(-move_step * dt, 0, 0))
-        if self.keyMap["shoot"]:
-            self.player.rotate(Vec3(100.0 * dt, 0, 0))
-            print("Zap!")
+        # if self.keyMap["shoot"]:
+        #     self.player.rotate(Vec3(100.0 * dt, 0, 0))
+        #     print("Zap!")
+        if self.mouseWatcherNode.hasMouse():
+            # print("Coords x: ", self.mouseWatcherNode.getMouseX(), "    y: ", self.mouseWatcherNode.getMouseY())
+            if self.mouseWatcherNode.getMouseX() < -self.mouse_check_value:
+                self.player.rotate(Vec3(100.0 * dt, 0, 0))
+            elif self.mouseWatcherNode.getMouseX() > self.mouse_check_value:
+                self.player.rotate(Vec3(-100.0 * dt, 0, 0))
 
         if not (self.keyMap["up"] or self.keyMap["down"] or self.keyMap["left"] or self.keyMap["right"]):
             self.player.stop()
