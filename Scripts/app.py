@@ -23,7 +23,8 @@ class Game(ShowBase):
         self.scene.reparentTo(self.render)
 
         self.player = Player(self.render)
-        self.camera_control()
+        self.angleDegrees = 0.0
+        self.camera_init()
 
         self.control_service()
         self.updateTask = taskMgr.add(self.update, "update")
@@ -49,25 +50,32 @@ class Game(ShowBase):
 
     def update_key_map(self, controlName, controlState):
         self.keyMap[controlName] = controlState
-        print(controlName, "set to", controlState)
 
     def update(self, task):
         # Get the amount of time since the last update
         dt = globalClock.getDt()
-
+        move_step = 15.0
         # If any movement keys are pressed, use the above time
         # to calculate how far to move the character, and apply that.
         if self.keyMap["up"]:
-            self.player.move(Vec3(0, 5.0 * dt, 0))
+            self.player.move(Vec3(0, -move_step * dt, 0))
         if self.keyMap["down"]:
-            self.player.move(Vec3(0, -5.0 * dt, 0))
+            self.player.move(Vec3(0, move_step * dt, 0))
         if self.keyMap["left"]:
-            self.player.move(Vec3(-5.0 * dt, 0, 0))
+            self.player.move(Vec3(move_step * dt, 0, 0))
         if self.keyMap["right"]:
-            self.player.move(Vec3(5.0 * dt, 0, 0))
+            self.player.move(Vec3(-move_step * dt, 0, 0))
         if self.keyMap["shoot"]:
+            self.player.rotate(Vec3(100.0 * dt, 0, 0))
             print("Zap!")
+
+        if not (self.keyMap["up"] or self.keyMap["down"] or self.keyMap["left"] or self.keyMap["right"]):
+            self.player.stop()
 
         return task.cont
 
-
+    def camera_init(self):
+        x, y, z = self.player.get_position()
+        self.camera.setPos(Vec3(x, y + 15, z + 17))
+        self.camera.setHpr(180, -15, 0)
+        self.camera.reparentTo(self.player.actor)

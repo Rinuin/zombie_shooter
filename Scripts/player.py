@@ -10,12 +10,20 @@ class Player:
         self.actor = Actor("models/panda",
                            {"walk": "models/panda-walk"})
         self.actor.reparentTo(parent)
-        self.actor.setPos(0, 5, 5)
-        self.actor.setHpr(180, 0, 0)
-        self.actor.loop("walk")
+        #
 
     def get_position(self):
         return self.actor.getPos()
 
     def move(self, movement_vector):
-        self.actor.setPos(self.actor.getPos() + movement_vector)
+        anim_controler = self.actor.getAnimControl("walk")
+        if not anim_controler.isPlaying():
+            self.actor.play("walk")
+        self.actor.setPos(self.actor, movement_vector)
+
+    def rotate(self, angle):
+        self.actor.setHpr(self.actor, angle)
+
+    def stop(self):
+        anim_controler = self.actor.getAnimControl("walk")
+        anim_controler.stop()
