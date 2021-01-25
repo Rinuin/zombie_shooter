@@ -1,3 +1,4 @@
+import sys
 from math import pi, sin, cos
 
 from direct.actor.Actor import Actor
@@ -7,6 +8,8 @@ from direct.task.TaskManagerGlobal import taskMgr
 from panda3d.core import WindowProperties, Vec3
 from direct.task import Task
 
+from Scripts import MUSIC_START_1_ASSET
+from Scripts.bullet import Bullet
 from Scripts.config import SCREEN_WIDTH, SCREEN_HEIGHT
 from Scripts.player import Player
 
@@ -30,7 +33,15 @@ class Game(ShowBase):
         self.control_service()
         self.updateTask = taskMgr.add(self.update, "update")
 
-        self.mouse_check_value = 0.8
+        self.mouse_check_value = 0.7
+
+        self.music = self.loader.load_music(MUSIC_START_1_ASSET)
+        self.music.setLoop(True)
+        self.music.play()
+
+        self.bullet_actor = Actor("models/smiley")
+        self.bullet_node = self.bullet_actor.copyTo(self.render)
+        self.bullets = []
 
     def control_service(self):
         self.keyMap = {
@@ -38,7 +49,8 @@ class Game(ShowBase):
             "down": False,
             "left": False,
             "right": False,
-            "shoot": False
+            "shoot": False,
+            "quit": False
         }
         self.accept("w", self.update_key_map, ["up", True])
         self.accept("w-up", self.update_key_map, ["up", False])
@@ -50,6 +62,7 @@ class Game(ShowBase):
         self.accept("d-up", self.update_key_map, ["right", False])
         self.accept("mouse1", self.update_key_map, ["shoot", True])
         self.accept("mouse1-up", self.update_key_map, ["shoot", False])
+        self.accept("escape", self.update_key_map, ["quit", True])
 
     def update_key_map(self, controlName, controlState):
         self.keyMap[controlName] = controlState
@@ -68,15 +81,15 @@ class Game(ShowBase):
             self.player.move(Vec3(move_step * dt, 0, 0))
         if self.keyMap["right"]:
             self.player.move(Vec3(-move_step * dt, 0, 0))
-        # if self.keyMap["shoot"]:
-        #     self.player.rotate(Vec3(100.0 * dt, 0, 0))
-        #     print("Zap!")
+        if self.keyMap["quit"]:
+            self.exit_game()
         if self.mouseWatcherNode.hasMouse():
-            # print("Coords x: ", self.mouseWatcherNode.getMouseX(), "    y: ", self.mouseWatcherNode.getMouseY())
             if self.mouseWatcherNode.getMouseX() < -self.mouse_check_value:
                 self.player.rotate(Vec3(100.0 * dt, 0, 0))
             elif self.mouseWatcherNode.getMouseX() > self.mouse_check_value:
                 self.player.rotate(Vec3(-100.0 * dt, 0, 0))
+        if self.keyMap["shoot"]:
+            self.shoot()
 
         if not (self.keyMap["up"] or self.keyMap["down"] or self.keyMap["left"] or self.keyMap["right"]):
             self.player.stop()
@@ -88,3 +101,23 @@ class Game(ShowBase):
         self.camera.setPos(Vec3(x, y + 15, z + 17))
         self.camera.setHpr(180, -15, 0)
         self.camera.reparentTo(self.player.actor)
+
+    def exit_game(self):
+        # De-initialization code goes here!
+        sys.exit()
+
+    # Every frame this task calls update on each bullet in the bullets list.
+    def updateBullets(self, task):
+        dt = globalClock.getDt()
+
+        for bullet in self.bullets:
+            bullet.update(dt)
+
+        return task.cont
+
+    def shoot(self):
+        bullets = [b for b in self.bullets if b.alive]  # remove any dead bullets
+        self.bullets.append(Bullet(self.bullet_actor, self.bullet_node,
+                                   self.player.get_position(), self.player.actor.getHpr()))
+
+
