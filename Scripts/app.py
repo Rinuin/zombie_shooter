@@ -1,17 +1,15 @@
 import sys
-from math import pi, sin, cos
 
-from direct.actor.Actor import Actor
 from direct.showbase.ShowBase import ShowBase
 from direct.showbase.ShowBaseGlobal import globalClock
 from direct.task.TaskManagerGlobal import taskMgr
-from panda3d.core import WindowProperties, Vec3
-from direct.task import Task
+from panda3d.core import WindowProperties, Vec3, CollisionHandlerPusher, CollisionTraverser
 
 from Scripts import MUSIC_START_1_ASSET
 from Scripts.bullet import Bullet
 from Scripts.config import SCREEN_WIDTH, SCREEN_HEIGHT
 from Scripts.player import Player
+from Scripts.scene import Scene
 
 
 class Game(ShowBase):
@@ -23,11 +21,13 @@ class Game(ShowBase):
         self.win.requestProperties(properties)
         self.disableMouse()
 
-        self.scene = self.loader.loadModel("models/environment")
-        self.scene.reparentTo(self.render)
+        self.cTrav = CollisionTraverser()
+        self.pusher = CollisionHandlerPusher()
+        self.pusher.setHorizontal(True)
 
-        self.player = Player(self.render)
-        self.angleDegrees = 0.0
+        self.scene = Scene(self.render, self.loader)
+        self.player = Player(self.render,self.pusher, self.cTrav)
+
         self.camera_init()
 
         self.control_service()
@@ -39,9 +39,9 @@ class Game(ShowBase):
         self.music.setLoop(True)
         self.music.play()
 
-        self.bullet_actor = Actor("models/smiley")
-        self.bullet_node = self.bullet_actor.copyTo(self.render)
-        self.bullets = []
+        # self.bullet_actor = Actor("models/smiley")
+        # self.bullet_node = self.bullet_actor.copyTo(self.render)
+        # self.bullets = []
 
     def control_service(self):
         self.keyMap = {
@@ -88,8 +88,8 @@ class Game(ShowBase):
                 self.player.rotate(Vec3(100.0 * dt, 0, 0))
             elif self.mouseWatcherNode.getMouseX() > self.mouse_check_value:
                 self.player.rotate(Vec3(-100.0 * dt, 0, 0))
-        if self.keyMap["shoot"]:
-            self.shoot()
+        # if self.keyMap["shoot"]:
+        #     self.shoot()
 
         if not (self.keyMap["up"] or self.keyMap["down"] or self.keyMap["left"] or self.keyMap["right"]):
             self.player.stop()
@@ -119,5 +119,3 @@ class Game(ShowBase):
         bullets = [b for b in self.bullets if b.alive]  # remove any dead bullets
         self.bullets.append(Bullet(self.bullet_actor, self.bullet_node,
                                    self.player.get_position(), self.player.actor.getHpr()))
-
-
