@@ -2,12 +2,34 @@ from direct.actor.Actor import Actor
 from direct.showbase.ShowBaseGlobal import globalClock
 from panda3d.core import CollisionRay, CollisionHandlerQueue, CollisionNode
 
+from direct.actor.Actor import Actor, CollisionNode
+from panda3d.core import Vec3, CollisionSphere, CollisionCapsule, CollisionHandlerPusher
 
 
 class Player:
-    def __init__(self, parent):
-        self.player_init(parent)
+    def __init__(self, parent, pusher, cTrav, loader):
+        self.actor = None
+        self.collider = None
+        self.player_init(parent, pusher, cTrav, loader)
 
+
+    def player_init(self, parent, pusher, cTrav, loader):
+        self.actor = Actor("models/panda",
+                           {"walk": "models/panda-walk"})
+        self.actor.reparentTo(parent)
+        self.actor.setHpr(180, 0, 0)
+        self.actor.setPos(0, 0, 0)
+        colliderNode = CollisionNode("player")
+        # Add a collision-sphere centred on (0, 0, 0), and with a radius of 0.3
+        colliderNode.addSolid(CollisionCapsule(Vec3(0, 0, 2), Vec3(0, 0, 9), 3))
+
+        self.collider = self.actor.attachNewNode(colliderNode)
+        pusher.addCollider(self.collider, self.actor)
+        # The traverser wants a collider, and a handler
+        # that responds to that collider's collisions
+        cTrav.addCollider(self.collider, pusher)
+
+        self.parent = parent
         self.ray = CollisionRay(0, 0, 0, 0, 1, 0)
 
         rayNode = CollisionNode("playerRay")
@@ -16,15 +38,18 @@ class Player:
         self.rayNodePath = parent.attachNewNode(rayNode)
         self.rayQueue = CollisionHandlerQueue()
 
-        self.actor.cTrav.addCollider(self.rayNodePath, self.rayQueue)
+        cTrav.addCollider(self.rayNodePath, self.rayQueue)
 
         self.damagePerSecond = -5.0
+        self.beamModel = loader.loadModel("models/misc/iris")
+        self.beamModel.reparentTo(self.actor)
+        # self.beamModel.setZ(1.5)
 
-    def player_init(self, parent):
-        self.actor = Actor("models/panda",
-                           {"walk": "models/panda-walk"})
-        self.actor.reparentTo(parent)
-        #
+        # This prevents lights from affecting this particular node
+        self.beamModel.setLightOff()
+        # We don't start out firing the laser, so
+        # we have it initially hidden.
+        self.beamModel.hide()
 
     def get_position(self):
         return self.actor.getPos()
@@ -59,10 +84,22 @@ class Player:
         if self.rayQueue.getNumEntries() > 0:
             self.rayQueue.sortEntries()
             rayHit = self.rayQueue.getEntry(0)
-            hitPos = rayHit.getSurfacePoint(self.actor.render)
+            hitPos = rayHit.getSurfacePoint(self.parent)
 
             hitNodePath = rayHit.getIntoNodePath()
             print(hitNodePath)
-            if hitNodePath.hasPythonTag("owner"):
+            print(hitNodePath.getPythonTag)
+            # print(hitPos)
+            if hitNodePath == "owner":
+                print("here")
                 hitObject = hitNodePath.getPythonTag("owner")
                 hitObject.alterHealth(self.damagePerSecond * dt)
+                # Find out how long the beam is, and scale the
+                # beam-model accordingly.
+                beamLength = (hitPos - self.actor.getPos()).length()
+                self.beamModel.setSy(beamLength)
+
+                self.beamModel.show()
+        else:
+            # If we're not shooting, don't show the beam-model.
+            self.beamModel.hide()

@@ -1,16 +1,14 @@
 import sys
-from math import pi, sin, cos
 
-from direct.actor.Actor import Actor
 from direct.showbase.ShowBase import ShowBase
 from direct.showbase.ShowBaseGlobal import globalClock
 from direct.task.TaskManagerGlobal import taskMgr
-from panda3d.core import WindowProperties, Vec3
-from direct.task import Task
+from panda3d.core import WindowProperties, Vec3, CollisionHandlerPusher, CollisionTraverser
 
 from Scripts import MUSIC_START_1_ASSET
 from Scripts.config import SCREEN_WIDTH, SCREEN_HEIGHT
 from Scripts.player import Player
+from Scripts.scene import Scene
 
 
 class Game(ShowBase):
@@ -22,11 +20,13 @@ class Game(ShowBase):
         self.win.requestProperties(properties)
         self.disableMouse()
 
-        self.scene = self.loader.loadModel("models/environment")
-        self.scene.reparentTo(self.render)
+        self.cTrav = CollisionTraverser()
+        self.pusher = CollisionHandlerPusher()
+        self.pusher.setHorizontal(True)
 
-        self.player = Player(self.render)
-        self.angleDegrees = 0.0
+        self.scene = Scene(self.render, self.loader)
+        self.player = Player(self.render, self.pusher, self.cTrav, self.loader)
+
         self.camera_init()
 
         self.control_service()
@@ -37,8 +37,6 @@ class Game(ShowBase):
         self.music = self.loader.load_music(MUSIC_START_1_ASSET)
         self.music.setLoop(True)
         self.music.play()
-
-
 
     def control_service(self):
         self.keyMap = {
