@@ -1,3 +1,4 @@
+from panda3d.core import Vec3
 from direct.actor.Actor import Actor
 from direct.showbase.ShowBaseGlobal import globalClock
 from panda3d.core import CollisionRay, CollisionHandlerQueue, CollisionNode
@@ -5,67 +6,31 @@ from panda3d.core import CollisionRay, CollisionHandlerQueue, CollisionNode
 from direct.actor.Actor import Actor, CollisionNode
 from panda3d.core import Vec3, CollisionSphere, CollisionCapsule, CollisionHandlerPusher
 
-
-class Player:
-    def __init__(self, parent, pusher, cTrav, loader):
-        self.actor = None
-        self.collider = None
-        self.player_init(parent, pusher, cTrav, loader)
+from Scripts.game_object import GameObject
 
 
-    def player_init(self, parent, pusher, cTrav, loader):
-        self.actor = Actor("models/panda",
-                           {"walk": "models/panda-walk"})
-        self.actor.reparentTo(parent)
-        self.actor.setHpr(180, 0, 0)
-        self.actor.setPos(0, 0, 0)
-        colliderNode = CollisionNode("player")
-        # Add a collision-sphere centred on (0, 0, 0), and with a radius of 0.3
-        colliderNode.addSolid(CollisionCapsule(Vec3(0, 0, 2), Vec3(0, 0, 9), 3))
+class Player(GameObject):
+    def __init__(self, modelName, model_anims, max_health, speed, collider_name,  base, pos, hpr=Vec3(0, 0, 0),
+                 scale=1.0):
+        GameObject.__init__(self, modelName, model_anims, max_health, speed, collider_name,  base, pos, hpr,
+                            scale)
+        self.player_init()
 
-        self.collider = self.actor.attachNewNode(colliderNode)
-        pusher.addCollider(self.collider, self.actor)
-        # The traverser wants a collider, and a handler
-        # that responds to that collider's collisions
-        cTrav.addCollider(self.collider, pusher)
-
-        self.parent = parent
-        self.ray = CollisionRay(0, 0, 0, 0, 1, 0)
-
-        rayNode = CollisionNode("playerRay")
-        rayNode.addSolid(self.ray)
-
-        self.rayNodePath = parent.attachNewNode(rayNode)
-        self.rayQueue = CollisionHandlerQueue()
-
-        cTrav.addCollider(self.rayNodePath, self.rayQueue)
-
-        self.damagePerSecond = -5.0
-        self.beamModel = loader.loadModel("models/misc/iris")
-        self.beamModel.reparentTo(self.actor)
-        # self.beamModel.setZ(1.5)
-
-        # This prevents lights from affecting this particular node
-        self.beamModel.setLightOff()
-        # We don't start out firing the laser, so
-        # we have it initially hidden.
-        self.beamModel.hide()
-
-    def get_position(self):
-        return self.actor.getPos()
+    def player_init(self):
+        self.base.pusher.addCollider(self.collider, self.actor)
+        self.base.cTrav.addCollider(self.collider, self.base.pusher)
+        self.collider.setPythonTag("player", self)
 
     def move(self, movement_vector):
-        anim_controler = self.actor.getAnimControl("walk")
-        if not anim_controler.isPlaying():
+        anim_controller = self.actor.getAnimControl("walk")
+        if not anim_controller.isPlaying():
             self.actor.play("walk")
-        self.actor.setPos(self.actor, movement_vector)
-
-    def rotate(self, angle):
-        self.actor.setHpr(self.actor, angle)
+        self.actor.setPos(self.actor, movement_vector * self.speed)
 
     def stop(self):
-        anim_controler = self.actor.getAnimControl("walk")
-        anim_controler.stop()
+        anim_controller = self.actor.getAnimControl("walk")
+        anim_controller.stop()
+
 
     # def get_hpr(self):
     #     return self.actor.getHpr()

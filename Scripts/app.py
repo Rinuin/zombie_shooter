@@ -6,6 +6,7 @@ from direct.task.TaskManagerGlobal import taskMgr
 from panda3d.core import WindowProperties, Vec3, CollisionHandlerPusher, CollisionTraverser
 
 from Scripts import MUSIC_START_1_ASSET
+from Scripts.bullet import Bullet
 from Scripts.config import SCREEN_WIDTH, SCREEN_HEIGHT
 from Scripts.player import Player
 from Scripts.scene import Scene
@@ -24,19 +25,23 @@ class Game(ShowBase):
         self.pusher = CollisionHandlerPusher()
         self.pusher.setHorizontal(True)
 
-        self.scene = Scene(self.render, self.loader)
-        self.player = Player(self.render, self.pusher, self.cTrav, self.loader)
-
+        self.scene = Scene(self.render, self.loader, self, 5)
+        self.player = Player("models/panda", {"walk": "models/panda-walk"}, 2, 15, "player",
+                             self, Vec3(0, 0, 0), Vec3(180, 0, 0))
         self.camera_init()
 
         self.control_service()
         self.updateTask = taskMgr.add(self.update, "update")
-
         self.mouse_check_value = 0.7
+        self.pusher.add_in_pattern("%fn-into-%in")
 
         self.music = self.loader.load_music(MUSIC_START_1_ASSET)
         self.music.setLoop(True)
         self.music.play()
+
+        # self.bullet_actor = Actor("models/smiley")
+        # self.bullet_node = self.bullet_actor.copyTo(self.render)
+        # self.bullets = []
 
     def control_service(self):
         self.keyMap = {
@@ -65,17 +70,17 @@ class Game(ShowBase):
     def update(self, task):
         # Get the amount of time since the last update
         dt = globalClock.getDt()
-        move_step = 15.0
+
         # If any movement keys are pressed, use the above time
         # to calculate how far to move the character, and apply that.
         if self.keyMap["up"]:
-            self.player.move(Vec3(0, -move_step * dt, 0))
+            self.player.move(Vec3(0, -  dt, 0))
         if self.keyMap["down"]:
-            self.player.move(Vec3(0, move_step * dt, 0))
+            self.player.move(Vec3(0, dt, 0))
         if self.keyMap["left"]:
-            self.player.move(Vec3(move_step * dt, 0, 0))
+            self.player.move(Vec3(dt, 0, 0))
         if self.keyMap["right"]:
-            self.player.move(Vec3(-move_step * dt, 0, 0))
+            self.player.move(Vec3(- dt, 0, 0))
         if self.keyMap["quit"]:
             self.exit_game()
         if self.mouseWatcherNode.hasMouse():
@@ -88,6 +93,8 @@ class Game(ShowBase):
 
         if not (self.keyMap["up"] or self.keyMap["down"] or self.keyMap["left"] or self.keyMap["right"]):
             self.player.stop()
+
+        self.scene.update(dt)
 
         return task.cont
 

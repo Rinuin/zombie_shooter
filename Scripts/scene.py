@@ -1,12 +1,18 @@
 from math import copysign
+from random import randint
 
 from panda3d.core import SamplerState, CardMaker, CollisionNode, Vec3, CollisionPlane, Point3, Plane
 
+from Scripts.enemy import Enemy
+
 
 class Scene:
-    def __init__(self, render, loader):
-        self.size = 200
+    def __init__(self, render, loader, base, max_enemies):
+        self.size = 400
         self.scene_init(render, loader)
+        self.base = base
+        self.max_enemies = max_enemies
+        self.enemies = []
 
     def scene_init(self, render, loader):
         # self.scene = self.loader.loadModel("models/environment")
@@ -67,3 +73,17 @@ class Scene:
         wall.setY(y_angle * self.size / 2)
 
         wall.setHpr(angle, -90, 0)
+
+    def spawn_enemy(self):
+        while self.max_enemies is not len(self.enemies):
+            x = randint(-self.size / 2, self.size / 2)
+            y = randint(-self.size / 2, self.size / 2)
+            vec = self.base.player.get_position()
+            if abs(vec.getX() - x) > 10 and abs(vec.getY() - y > 10):
+                self.enemies.append(Enemy("models/panda-model", {"walk": "models/panda-walk4"}, 1, 5, "enemy",
+                                          self.base, self, Vec3(x, y, 0), Vec3(0, 0, 0), 0.02))
+
+    def update(self, dt):
+        self.spawn_enemy()
+        for en in self.enemies:
+            en.attack(dt)
