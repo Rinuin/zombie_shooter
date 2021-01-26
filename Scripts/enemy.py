@@ -13,7 +13,7 @@ class Enemy(GameObject):
         self.yVector = Vec2(0, 1)
         self.scene = scene
         self.i = i
-        self.collider.setPythonTag("enemy" + str(i), self)
+        self.collider.setPythonTag("enemy", self)
         self.base.accept("enemy" + str(i) + "-into-player", self.collision)
         self.base.accept("player-into-enemy" + str(i), self.collision)
 
@@ -38,10 +38,16 @@ class Enemy(GameObject):
 
     def collision(self, entry):
         collider = entry.getFromNodePath()
-        if collider.hasPythonTag("enemy"):
+        if collider.hasPythonTag("player"):
             self.base.player.change_health(-1)
             self.cleanup()
             self.scene.enemies.remove(self)
+
+    def change_health(self, dHealth):
+        GameObject.change_health(self, dHealth)
+        if self.health == 0:
+            self.scene.enemies.remove(self)
+            self.cleanup()
 
     # def cleanup(self):
     #     GameObject.cleanup(self)

@@ -1,4 +1,5 @@
-from panda3d.core import Vec3, BitMask32
+from direct.gui.OnscreenImage import OnscreenImage
+from panda3d.core import Vec3
 from direct.actor.Actor import Actor
 from direct.showbase.ShowBaseGlobal import globalClock
 from panda3d.core import CollisionRay, CollisionHandlerQueue, CollisionNode
@@ -6,7 +7,8 @@ from panda3d.core import CollisionRay, CollisionHandlerQueue, CollisionNode
 from direct.actor.Actor import Actor, CollisionNode
 from panda3d.core import Vec3, CollisionSphere, CollisionCapsule, CollisionHandlerPusher
 
-from Scripts import BAMBOO_LASER
+# from Scripts.app import Game
+from Scripts import GAME_OVER
 from Scripts.game_object import GameObject
 
 
@@ -23,33 +25,23 @@ class Player(GameObject):
         self.collider.setPythonTag("player", self)
 
 
-        self.base.camLens.setFov(150) #----------------------------------------------
+        # self.base.camLens.setFov(150) #----------------------------------------------
         # self.base.camLens.setFov(5)
-
-        self.mask = BitMask32()
-        self.mask.setBit(1)
-        self.collider.node().setIntoCollideMask(self.mask)
-        self.collider.node().setFromCollideMask(self.mask)
-
-        self.mask.setBit(2)
-
 
         self.ray = CollisionRay(0, 0, 0, 0, -1, 0)
 
         rayNode = CollisionNode("playerRay")
         rayNode.addSolid(self.ray)
 
-        mask = BitMask32()
-
         self.rayNodePath = self.actor.attachNewNode(rayNode)
         self.rayQueue = CollisionHandlerQueue()
 
         self.base.cTrav.addCollider(self.rayNodePath, self.rayQueue)
 
-        self.damagePerSecond = -5.0
-        self.beamModel = self.base.loader.loadModel("models/box")
+        # self.damagePerSecond = -5.0
+        self.beamModel = self.base.loader.loadModel("models/frowney")
         self.beamModel.reparentTo(self.actor)
-        self.beamModel.setZ(2)
+        self.beamModel.setZ(10)
 
         self.beamModel.setLightOff()
         self.beamModel.hide()
@@ -64,6 +56,12 @@ class Player(GameObject):
         anim_controller = self.actor.getAnimControl("walk")
         anim_controller.stop()
 
+    def change_health(self, dHealth):
+        GameObject.change_health(self, dHealth)
+        if self.health == 0:
+        #     imageOnject = OnscreenImage(image = "game_over.png")
+            self.cleanup()
+
 
     def shoot(self):
         dt = globalClock.getDt()
@@ -75,24 +73,28 @@ class Player(GameObject):
             hitPos = rayHit.getSurfacePoint(self.base.render)
             # print(hitPos, "hitpos")
             # print(rayHit, "rayhit")
-            beamLength = (hitPos - self.actor.getPos())
+            # beamLength = (hitPos - self.actor.getPos()).length()
             # print("length: ", beamLength)
 
             hitNodePath = rayHit.getIntoNodePath()
             # print(hitNodePath)
             # print(hitNodePath.getPythonTag)
             # print(hitPos)
-            print(hitNodePath.getPythonTag)
-            if hitNodePath.getPythonTag == "enemy":
+            # print(hitNodePath.getTag)
+            # print(hitNodePath.hasPythonTag("enemy"))
+            # print(rayHit.getFrom())
+            if hitNodePath.hasPythonTag("enemy"):
                 print("here")
                 hitObject = hitNodePath.getPythonTag("enemy")
-                hitObject.alterHealth(self.damagePerSecond * dt)
+                hitObject.change_health(-1)
+
                 # Find out how long the beam is, and scale the
                 # beam-model accordingly.
-                beamLength = (hitPos - self.actor.getPos()).length()
-                self.beamModel.setSy(beamLength)
+                # print(self.actor.getPos())
+                beamLength = (hitPos - (self.actor.getPos())).length()
+                self.beamModel.setSy(-beamLength)
 
                 self.beamModel.show()
-        else:
-            # If we're not shooting, don't show the beam-model.
-            self.beamModel.hide()
+            else:
+                # If we're not shooting, don't show the beam-model.
+                self.beamModel.hide()

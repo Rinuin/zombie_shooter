@@ -96,7 +96,7 @@ class Game(ShowBase):
 
     def camera_init(self):
         x, y, z = self.player.get_position()
-        self.camera.setPos(Vec3(x, y + 15, z + 17))
+        self.camera.setPos(Vec3(x, y + 10, z + 17))
         self.camera.setHpr(180, -15, 0)
         self.camera.reparentTo(self.player.actor)
 
