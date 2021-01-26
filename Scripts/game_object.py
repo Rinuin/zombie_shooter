@@ -20,7 +20,6 @@ class GameObject:
         colliderNode.addSolid(CollisionCapsule(Vec3(0, 0, 2) * 1 / scale, Vec3(0, 0, 9) * 1 / scale, 3 * 1 / scale))
         # colliderNode.addSolid(CollisionSphere(0, 0, 0, 0.3))
         self.collider = self.actor.attachNewNode(colliderNode)
-        self.collider.show()
         self.collider.setPythonTag("owner", self)
 
     def get_position(self):

@@ -27,15 +27,14 @@ class Game(ShowBase):
         self.pusher.setHorizontal(True)
 
         self.scene = Scene(self.render, self.loader)
-        self.player = Player("models/panda", {"walk": "models/panda-walk"}, 5, 1, "player", self.render,
+        self.player = Player("models/panda", {"walk": "models/panda-walk"}, 2, 5, "player", self.render,
                              self, Vec3(0, 0, 0), Vec3(180, 0, 0))
-        self.enemy = Enemy("models/panda-model", {"walk": "models/panda-walk4"}, 5, 1, "player",
+        self.enemy = Enemy("models/panda-model", {"walk": "models/panda-walk4"}, 1, 5, "enemy",
                            self.render, self, Vec3(0, 100, 0), Vec3(0, 0, 0), 0.02)
         self.camera_init()
 
         self.control_service()
         self.updateTask = taskMgr.add(self.update, "update")
-
         self.mouse_check_value = 0.7
 
         self.music = self.loader.load_music(MUSIC_START_1_ASSET)
@@ -97,6 +96,7 @@ class Game(ShowBase):
         if not (self.keyMap["up"] or self.keyMap["down"] or self.keyMap["left"] or self.keyMap["right"]):
             self.player.stop()
 
+        self.enemy.attack(dt)
         return task.cont
 
     def camera_init(self):
