@@ -80,8 +80,10 @@ class Scene:
             y = randint(-self.size / 2, self.size / 2)
             vec = self.base.player.get_position()
             if abs(vec.getX() - x) > 10 and abs(vec.getY() - y > 10):
-                self.enemies.append(Enemy("models/panda-model", {"walk": "models/panda-walk4"}, 1, 5, "enemy",
-                                          self.base, self, Vec3(x, y, 0), Vec3(0, 0, 0), 0.02))
+                i = max(node.i for node in self.enemies) + 1 if len(self.enemies) > 0 else 0
+                enemy = Enemy("models/panda-model", {"walk": "models/panda-walk4"}, 1, 5, "enemy" + str(i),
+                              self.base, self, i, Vec3(x, y, 0), Vec3(0, 0, 0), 0.02)
+                self.enemies.append(enemy)
 
     def update(self, dt):
         self.spawn_enemy()

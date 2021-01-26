@@ -41,7 +41,7 @@ class GameObject:
     def cleanup(self):
         # Remove various nodes, and clear the Python-tag--see below!
         if self.collider is not None and not self.collider.isEmpty():
-            self.collider.clearPythonTag("owner")
+           # self.collider.clearPythonTag("owner")
             self.base.cTrav.removeCollider(self.collider)
             self.base.pusher.removeCollider(self.collider)
 
@@ -51,4 +51,4 @@ class GameObject:
             self.actor = None
 
         self.collider = None
-        self.base.enemy = None
+

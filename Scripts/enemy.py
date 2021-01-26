@@ -4,7 +4,7 @@ from Scripts.game_object import GameObject
 
 
 class Enemy(GameObject):
-    def __init__(self, modelName, model_anims, max_health, speed, collider_name, base, scene, pos, hpr=Vec3(0, 0, 0),
+    def __init__(self, modelName, model_anims, max_health, speed, collider_name, base, scene, i, pos, hpr=Vec3(0, 0, 0),
                  scale=1.0):
         GameObject.__init__(self, modelName, model_anims, max_health, speed, collider_name, base, pos, hpr,
                             scale)
@@ -12,9 +12,10 @@ class Enemy(GameObject):
         self.target = base.player
         self.yVector = Vec2(0, 1)
         self.scene = scene
-
-        self.base.accept("enemy-into-player", self.collision)
-        self.base.accept("player-into-enemy", self.collision)
+        self.i = i
+        self.collider.setPythonTag("enemy" + str(i), self)
+        self.base.accept("enemy" + str(i) + "-into-player", self.collision)
+        self.base.accept("player-into-enemy" + str(i), self.collision)
 
         mask = BitMask32()
         mask.setBit(2)
@@ -40,7 +41,8 @@ class Enemy(GameObject):
         if collider.hasPythonTag("enemy"):
             self.base.player.change_health(-1)
             self.cleanup()
+            self.scene.enemies.remove(self)
 
-    def cleanup(self):
-        GameObject.cleanup(self)
-        self.scene.enemies.remove(self)
+    # def cleanup(self):
+    #     GameObject.cleanup(self)
+    #     self.scene.enemies.remove(self)
