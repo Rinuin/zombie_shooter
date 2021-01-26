@@ -8,6 +8,7 @@ from panda3d.core import WindowProperties, Vec3, CollisionHandlerPusher, Collisi
 from Scripts import MUSIC_START_1_ASSET
 from Scripts.bullet import Bullet
 from Scripts.config import SCREEN_WIDTH, SCREEN_HEIGHT
+from Scripts.enemy import Enemy
 from Scripts.player import Player
 from Scripts.scene import Scene
 
@@ -26,8 +27,10 @@ class Game(ShowBase):
         self.pusher.setHorizontal(True)
 
         self.scene = Scene(self.render, self.loader)
-        self.player = Player(self.render,self.pusher, self.cTrav)
-
+        self.player = Player("models/panda", {"walk": "models/panda-walk"}, 5, 1, "player", self.render,
+                             self, Vec3(0, 0, 0), Vec3(180, 0, 0))
+        self.enemy = Enemy("models/panda-model", {"walk": "models/panda-walk4"}, 5, 1, "player",
+                           self.render, self, Vec3(0, 100, 0), Vec3(0, 0, 0), 0.02)
         self.camera_init()
 
         self.control_service()

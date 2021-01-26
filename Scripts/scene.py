@@ -5,7 +5,7 @@ from panda3d.core import SamplerState, CardMaker, CollisionNode, Vec3, Collision
 
 class Scene:
     def __init__(self, render, loader):
-        self.size = 200
+        self.size = 400
         self.scene_init(render, loader)
 
     def scene_init(self, render, loader):
