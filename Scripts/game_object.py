@@ -21,7 +21,7 @@ class GameObject:
         # colliderNode.addSolid(CollisionSphere(0, 0, 0, 0.3))
         self.collider = self.actor.attachNewNode(colliderNode)
         self.collider.setPythonTag("owner", self)
-        #self.collider.show()
+        # self.collider.show()
 
     def get_position(self):
         return self.actor.getPos()

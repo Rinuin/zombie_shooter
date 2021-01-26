@@ -1,4 +1,4 @@
-from panda3d.core import Vec3, Vec2
+from panda3d.core import Vec3, Vec2, BitMask32
 
 from Scripts.game_object import GameObject
 
@@ -16,6 +16,11 @@ class Enemy(GameObject):
         self.base.accept("enemy-into-player", self.collision)
         self.base.accept("player-into-enemy", self.collision)
 
+        mask = BitMask32()
+        mask.setBit(2)
+
+        self.collider.node().setIntoCollideMask(mask)
+
     def attack(self, dt):
         vectorToPlayer = self.target.get_position() - self.actor.getPos()
 
@@ -32,7 +37,7 @@ class Enemy(GameObject):
 
     def collision(self, entry):
         collider = entry.getFromNodePath()
-        if collider.hasPythonTag("player"):
+        if collider.hasPythonTag("enemy"):
             self.base.player.change_health(-1)
             self.cleanup()
 

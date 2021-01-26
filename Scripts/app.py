@@ -6,7 +6,6 @@ from direct.task.TaskManagerGlobal import taskMgr
 from panda3d.core import WindowProperties, Vec3, CollisionHandlerPusher, CollisionTraverser
 
 from Scripts import MUSIC_START_1_ASSET
-from Scripts.bullet import Bullet
 from Scripts.config import SCREEN_WIDTH, SCREEN_HEIGHT
 from Scripts.player import Player
 from Scripts.scene import Scene
@@ -35,13 +34,10 @@ class Game(ShowBase):
         self.mouse_check_value = 0.7
         self.pusher.add_in_pattern("%fn-into-%in")
 
-        self.music = self.loader.load_music(MUSIC_START_1_ASSET)
-        self.music.setLoop(True)
-        self.music.play()
 
-        # self.bullet_actor = Actor("models/smiley")
-        # self.bullet_node = self.bullet_actor.copyTo(self.render)
-        # self.bullets = []
+        # self.music = self.loader.load_music(MUSIC_START_1_ASSET)
+        # self.music.setLoop(True)
+        # self.music.play()
 
     def control_service(self):
         self.keyMap = {

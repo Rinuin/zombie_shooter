@@ -1,4 +1,4 @@
-from panda3d.core import Vec3
+from panda3d.core import Vec3, BitMask32
 from direct.actor.Actor import Actor
 from direct.showbase.ShowBaseGlobal import globalClock
 from panda3d.core import CollisionRay, CollisionHandlerQueue, CollisionNode
@@ -6,6 +6,7 @@ from panda3d.core import CollisionRay, CollisionHandlerQueue, CollisionNode
 from direct.actor.Actor import Actor, CollisionNode
 from panda3d.core import Vec3, CollisionSphere, CollisionCapsule, CollisionHandlerPusher
 
+from Scripts import BAMBOO_LASER
 from Scripts.game_object import GameObject
 
 
@@ -21,6 +22,38 @@ class Player(GameObject):
         self.base.cTrav.addCollider(self.collider, self.base.pusher)
         self.collider.setPythonTag("player", self)
 
+
+        self.base.camLens.setFov(150) #----------------------------------------------
+        # self.base.camLens.setFov(5)
+
+        self.mask = BitMask32()
+        self.mask.setBit(1)
+        self.collider.node().setIntoCollideMask(self.mask)
+        self.collider.node().setFromCollideMask(self.mask)
+
+        self.mask.setBit(2)
+
+
+        self.ray = CollisionRay(0, 0, 0, 0, -1, 0)
+
+        rayNode = CollisionNode("playerRay")
+        rayNode.addSolid(self.ray)
+
+        mask = BitMask32()
+
+        self.rayNodePath = self.actor.attachNewNode(rayNode)
+        self.rayQueue = CollisionHandlerQueue()
+
+        self.base.cTrav.addCollider(self.rayNodePath, self.rayQueue)
+
+        self.damagePerSecond = -5.0
+        self.beamModel = self.base.loader.loadModel("models/box")
+        self.beamModel.reparentTo(self.actor)
+        self.beamModel.setZ(2)
+
+        self.beamModel.setLightOff()
+        self.beamModel.hide()
+
     def move(self, movement_vector):
         anim_controller = self.actor.getAnimControl("walk")
         if not anim_controller.isPlaying():
@@ -32,32 +65,27 @@ class Player(GameObject):
         anim_controller.stop()
 
 
-    # def get_hpr(self):
-    #     return self.actor.getHpr()
-
-    # # Every frame this task calls update on each bullet in the bullets list.
-    # def updateBullets(self, task):
-    #     dt = globalClock.getDt()
-    #
-    #     for bullet in self.bullets:
-    #         bullet.update(dt)
-    #
-    #     return task.cont
-
     def shoot(self):
         dt = globalClock.getDt()
+        # print(self.rayQueue.getNumEntries())
+        # print(self.rayQueue)
         if self.rayQueue.getNumEntries() > 0:
             self.rayQueue.sortEntries()
-            rayHit = self.rayQueue.getEntry(0)
-            hitPos = rayHit.getSurfacePoint(self.parent)
+            rayHit = self.rayQueue.getEntry(1)
+            hitPos = rayHit.getSurfacePoint(self.base.render)
+            # print(hitPos, "hitpos")
+            # print(rayHit, "rayhit")
+            beamLength = (hitPos - self.actor.getPos())
+            # print("length: ", beamLength)
 
             hitNodePath = rayHit.getIntoNodePath()
-            print(hitNodePath)
-            print(hitNodePath.getPythonTag)
+            # print(hitNodePath)
+            # print(hitNodePath.getPythonTag)
             # print(hitPos)
-            if hitNodePath == "owner":
+            print(hitNodePath.getPythonTag)
+            if hitNodePath.getPythonTag == "enemy":
                 print("here")
-                hitObject = hitNodePath.getPythonTag("owner")
+                hitObject = hitNodePath.getPythonTag("enemy")
                 hitObject.alterHealth(self.damagePerSecond * dt)
                 # Find out how long the beam is, and scale the
                 # beam-model accordingly.
