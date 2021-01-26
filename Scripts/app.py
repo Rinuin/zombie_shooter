@@ -9,7 +9,6 @@ from panda3d.core import WindowProperties, Vec3
 from direct.task import Task
 
 from Scripts import MUSIC_START_1_ASSET
-from Scripts.bullet import Bullet
 from Scripts.config import SCREEN_WIDTH, SCREEN_HEIGHT
 from Scripts.player import Player
 
@@ -39,9 +38,7 @@ class Game(ShowBase):
         self.music.setLoop(True)
         self.music.play()
 
-        self.bullet_actor = Actor("models/smiley")
-        self.bullet_node = self.bullet_actor.copyTo(self.render)
-        self.bullets = []
+
 
     def control_service(self):
         self.keyMap = {
@@ -89,7 +86,7 @@ class Game(ShowBase):
             elif self.mouseWatcherNode.getMouseX() > self.mouse_check_value:
                 self.player.rotate(Vec3(-100.0 * dt, 0, 0))
         if self.keyMap["shoot"]:
-            self.shoot()
+            self.player.shoot()
 
         if not (self.keyMap["up"] or self.keyMap["down"] or self.keyMap["left"] or self.keyMap["right"]):
             self.player.stop()
@@ -106,18 +103,6 @@ class Game(ShowBase):
         # De-initialization code goes here!
         sys.exit()
 
-    # Every frame this task calls update on each bullet in the bullets list.
-    def updateBullets(self, task):
-        dt = globalClock.getDt()
 
-        for bullet in self.bullets:
-            bullet.update(dt)
-
-        return task.cont
-
-    def shoot(self):
-        bullets = [b for b in self.bullets if b.alive]  # remove any dead bullets
-        self.bullets.append(Bullet(self.bullet_actor, self.bullet_node,
-                                   self.player.get_position(), self.player.actor.getHpr()))
 
 
