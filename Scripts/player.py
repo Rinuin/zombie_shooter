@@ -1,6 +1,9 @@
+import sys
+
 from direct.gui.OnscreenImage import OnscreenImage
 from panda3d.core import Vec3
 from direct.actor.Actor import Actor
+from direct.gui.OnscreenText import OnscreenText
 from direct.showbase.ShowBaseGlobal import globalClock
 from panda3d.core import CollisionRay, CollisionHandlerQueue, CollisionNode
 
@@ -24,9 +27,14 @@ class Player(GameObject):
         self.base.cTrav.addCollider(self.collider, self.base.pusher)
         self.collider.setPythonTag("player", self)
 
+        self.score = 0
+        self.score_string = str(self.score)
 
         # self.base.camLens.setFov(150) #----------------------------------------------
         # self.base.camLens.setFov(5)
+
+
+        self.textObject = OnscreenText(text='Score:' + self.score_string, pos=(-1.15, -0.95), scale=0.1)
 
         self.ray = CollisionRay(0, 0, 0, 0, -1, 0)
 
@@ -61,6 +69,12 @@ class Player(GameObject):
         if self.health == 0:
         #     imageOnject = OnscreenImage(image = "game_over.png")
             self.cleanup()
+            sys.exit()
+
+    def update_score(self):
+        self.score_string = str(self.score)
+        self.textObject.destroy()
+        self.textObject = OnscreenText(text='Score:' + self.score_string, pos=(-1.15, -0.95), scale=0.1)
 
 
     def shoot(self):
@@ -84,7 +98,7 @@ class Player(GameObject):
             # print(hitNodePath.hasPythonTag("enemy"))
             # print(rayHit.getFrom())
             if hitNodePath.hasPythonTag("enemy"):
-                print("here")
+                # print("here")
                 hitObject = hitNodePath.getPythonTag("enemy")
                 hitObject.change_health(-1)
 
@@ -93,7 +107,8 @@ class Player(GameObject):
                 # print(self.actor.getPos())
                 beamLength = (hitPos - (self.actor.getPos())).length()
                 self.beamModel.setSy(-beamLength)
-
+                self.score += 1
+                self.update_score()
                 self.beamModel.show()
             else:
                 # If we're not shooting, don't show the beam-model.
